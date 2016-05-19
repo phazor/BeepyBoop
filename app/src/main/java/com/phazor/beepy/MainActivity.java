@@ -182,7 +182,9 @@ result.enqueue(new Callback<ResponseBody>() {
 			@Override
 			public void onFailure(Call<ResponseBody> c, Throwable t) {
 				Log.w("blah", "faill");
-				Log.w("error", t.getMessage());
+				if (t.getMessage().length() > 0) {
+					Log.w("error", t.getMessage());
+				}
 				// Ruh roh, no internet!
 			}
 		});
