@@ -6,14 +6,15 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import retrofit2.*;
 import retrofit2.http.GET;
-import retrofit2.BuiltInConverters;
-import retrofit2.Converter;
 import okhttp3.ResponseBody;
+import retrofit2.converter.gson.*;
 
 import android.widget.*;
 import java.net.*;
 import java.io.*;
 import android.util.*;
+import com.google.gson.*;
+import com.phazor.beepy.position.json.*;
 
 public class MainActivity extends Activity 
 {
@@ -162,25 +163,26 @@ result.enqueue(new Callback<ResponseBody>() {
 	public void doStuff() {
 		Retrofit retrofit = new Retrofit.Builder()
 			.baseUrl("http://api.open-notify.org/")
+			.addConverterFactory(GsonConverterFactory.create())
 			.build();
 			
 		ISSRetrieverService issService = retrofit.create(ISSRetrieverService.class);
 		
-		Call<ResponseBody> stuff = issService.getISSPos();
-		stuff.enqueue(new Callback<ResponseBody>() {
+		Call<ISSNow> stuff = issService.getISSPos();
+		stuff.enqueue(new Callback<ISSNow>() {
 			@Override
-			public void onResponse(Call<ResponseBody> c, Response<ResponseBody> response) {
+			public void onResponse(Call<ISSNow> c, Response<ISSNow> response) {
 				try {
 					Log.w("blah", "blah");
-					Log.w("blah", response.body().string());
-					doMoreStuff();
+					Log.w("blah", response.body().getMessage());
+					doMoreStuff(response.body());
 				} catch(Exception ex) {
 					Log.w("blah", "cripes");
 				}
 			}
 			
 			@Override
-			public void onFailure(Call<ResponseBody> c, Throwable t) {
+			public void onFailure(Call<ISSNow> c, Throwable t) {
 				Log.w("blah", "faill");
 				if (t.getMessage().length() > 0) {
 					Log.w("error", t.getMessage());
@@ -191,10 +193,12 @@ result.enqueue(new Callback<ResponseBody>() {
 		Log.w("Retrofit", stuff.toString());
 	}
 	
-	public void doMoreStuff() {
+	public void doMoreStuff(ISSNow issNow) {
 		// Sup Goobers!!
 		TextView top = (TextView) findViewById(R.id.topTextView);
 		top.setText("Sup Goobers!!");
+		top.setText(issNow.getMessage());
+		
 		
 		TextView bottom = (TextView) findViewById(R.id.bottomTextView);
 		bottom.append("Latitude:");
@@ -207,6 +211,6 @@ result.enqueue(new Callback<ResponseBody>() {
 	
 	public interface ISSRetrieverService {
 		@GET("iss-now.json")
-		Call<ResponseBody> getISSPos();
+		Call<ISSNow> getISSPos();
 	}
 }
