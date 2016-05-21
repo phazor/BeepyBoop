@@ -1,14 +1,14 @@
 package com.phazor.beepy.position.json;
 import com.google.gson.annotations.*;
 
-public class ISSNow
+public class ISSCurrentPos
 {
 	private String message = null;
 	private String timetamp = null;
 	@SerializedName("iss_position")
 	private Position position = null;
 	
-	ISSNow() {	
+	ISSCurrentPos() {	
 	}
 
 	public void setPosition(Position position)

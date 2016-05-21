@@ -168,10 +168,10 @@ result.enqueue(new Callback<ResponseBody>() {
 			
 		ISSRetrieverService issService = retrofit.create(ISSRetrieverService.class);
 		
-		Call<ISSNow> stuff = issService.getISSPos();
-		stuff.enqueue(new Callback<ISSNow>() {
+		Call<ISSCurrentPos> stuff = issService.getISSPos();
+		stuff.enqueue(new Callback<ISSCurrentPos>() {
 			@Override
-			public void onResponse(Call<ISSNow> c, Response<ISSNow> response) {
+			public void onResponse(Call<ISSCurrentPos> c, Response<ISSCurrentPos> response) {
 				try {
 					Log.w("blah", "blah");
 					Log.w("blah", response.body().getMessage());
@@ -182,7 +182,7 @@ result.enqueue(new Callback<ResponseBody>() {
 			}
 			
 			@Override
-			public void onFailure(Call<ISSNow> c, Throwable t) {
+			public void onFailure(Call<ISSCurrentPos> c, Throwable t) {
 				Log.w("blah", "faill");
 				if (t.getMessage().length() > 0) {
 					Log.w("error", t.getMessage());
@@ -193,7 +193,7 @@ result.enqueue(new Callback<ResponseBody>() {
 		Log.w("Retrofit", stuff.toString());
 	}
 	
-	public void doMoreStuff(ISSNow issNow) {
+	public void doMoreStuff(ISSCurrentPos issNow) {
 		// Sup Goobers!!
 		TextView top = (TextView) findViewById(R.id.topTextView);
 		top.setText("Sup Goobers!!");
@@ -211,6 +211,6 @@ result.enqueue(new Callback<ResponseBody>() {
 	
 	public interface ISSRetrieverService {
 		@GET("iss-now.json")
-		Call<ISSNow> getISSPos();
+		Call<ISSCurrentPos> getISSPos();
 	}
 }
