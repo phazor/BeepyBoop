@@ -44,69 +44,6 @@ public class MainActivity extends Activity
 	}
 	
 	/*
-	 BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
-	 StringBuilder total = new StringBuilder();
-	 String line;
-	 while ((line = r.readLine()) != null) {
-	 total.append(line).append('\n');
-	 }
-	 */
-	
-	/*
-	 URL url = new URL("http://www.android.com/");
-	 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-	 try {
-     InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-     readStream(in);
-	 finally {
-     urlConnection.disconnect();
-	 }
-	 }
-	*/
-	
-	/*
-	 public interface GitHubService {
-	 @GET("users/{user}/repos")
-	 Call<List<Repo>> listRepos(@Path("user") String user);
-	 }
-	 The Retrofit class generates an implementation of the GitHubService interface.
-
-	 Retrofit retrofit = new Retrofit.Builder()
-	 .baseUrl("https://api.github.com/")
-	 .build();
-
-	 GitHubService service = retrofit.create(GitHubService.class);
-	 Each Call from the created GitHubService can make a synchronous or asynchronous HTTP request to the remote webserver.
-
-	 Call<List<Repo>> repos = service.listRepos("octocat");
-	*/
-	
-	/*
-	public interface GitHubService {
-    @GET("/users/{user}")
-    Call<ResponseBody> listRepos(@Path("user") String user);
-}
-then you can create and execute your call --
-
-GitHubService service = retrofit.create(GitHubService.class);
-Call<ResponseBody> result = service.listRepos(username);
-result.enqueue(new Callback<ResponseBody>() {
-    @Override
-    public void onResponse(Response<ResponseBody> response) {
-        try {
-            System.out.println(response.body().string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-        e.printStackTrace();
-    }
-	*/
-	
-	/*
 	 * doStuff
 	 * 
 	 * This method does exactly what it says on the tin
