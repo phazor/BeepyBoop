@@ -1,37 +1,91 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-	android:weightSum="100"
-	android:orientation="vertical">
-	
-	<LinearLayout 
-		android:layout_weight="50"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_height="wrap_content"
+	android:layout_width="wrap_content"
+	android:background="#000000">
+
+	<ImageView
 		android:layout_width="match_parent"
-		android:id="@+id/linearLayout1"
-		android:layout_height="wrap_content"
-		android:gravity="center_horizontal"
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:scaleType="centerCrop"
+		android:src="@drawable/space_bkg"/>
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:weightSum="100"
 		android:orientation="vertical">
 
+		<LinearLayout
+			android:layout_weight="50"
+			android:layout_width="match_parent"
+			android:id="@+id/linearLayout1"
+			android:layout_height="wrap_content"
+			android:gravity="center_horizontal"
+			android:orientation="vertical">
+
+			<TextView
+				android:textSize="14sp"
+				android:text="@string/welcome"
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent"
+				android:orientation="vertical"
+				android:gravity="center_horizontal"
+				android:textStyle="normal"
+				android:textColor="#FFFFFF"/>
+
+			<TextView
+				android:layout_height="wrap_content"
+				android:layout_width="match_parent"
+				android:text="@string/sub_welcome"
+				android:gravity="center"
+				android:textColor="#FFFFFF"
+				android:textSize="24sp"/>
+
+		</LinearLayout>
+
 		<TextView
-			android:id="@+id/topTextView"
-			android:textSize="10sp"
-        	android:text="@string/hello_world"
-        	android:layout_height="wrap_content" 
+			android:textSize="20sp"
+			android:text="@string/time_label"
+			android:layout_height="wrap_content"
 			android:layout_width="fill_parent"
 			android:orientation="vertical"
-			android:gravity="center_horizontal"/>
-	
-	</LinearLayout>
-	
-	<TextView
-		android:id="@+id/bottomTextView"
-		android:textSize="20sp"
-		android:text="@string/time_label"
-		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:orientation="vertical"
-		android:gravity="center_horizontal"/>
-	
+			android:gravity="center_horizontal"
+			android:textColor="#FFFFFF"/>
 
-</LinearLayout>
+		<TextView
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:layout_width="wrap_content"
+			android:text="Loading..."
+			android:paddingBottom="12dp"
+			android:id="@+id/passTimeText"/>
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:layout_width="wrap_content"
+			android:text="Current Position:"
+			android:textColor="#FFFFFF"/>
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:layout_width="wrap_content"
+			android:text="Loading..."
+			android:id="@+id/latitudeText"/>
+
+		<TextView
+			android:layout_height="wrap_content"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:layout_width="wrap_content"
+			android:text="Loading..."
+			android:id="@+id/longitudeText"/>
+
+	</LinearLayout>
+
+</RelativeLayout>
+
