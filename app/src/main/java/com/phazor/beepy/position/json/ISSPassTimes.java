@@ -36,7 +36,7 @@ public class ISSPassTimes
 		return message;
 	}
 	
-	private class Request {
+	public class Request {
 		private int latitude;
 		private int longitude;
 		private int altitude;
@@ -89,18 +89,18 @@ public class ISSPassTimes
 		}
 	}
 	
-	private class Response {
+	public class Response {
 		private String risetime;
-		private String timestamp;
+		private String duration;
 
-		public void setTimestamp(String timestamp)
+		public void setDuration(String duration)
 		{
-			this.timestamp = timestamp;
+			this.duration = duration;
 		}
 
-		public String getTimestamp()
+		public String getDuration()
 		{
-			return timestamp;
+			return duration;
 		}
 
 
