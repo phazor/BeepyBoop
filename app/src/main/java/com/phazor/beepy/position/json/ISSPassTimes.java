@@ -90,6 +90,7 @@ public class ISSPassTimes
 	}
 	
 	public class Response {
+		// TODO: Set to correct units. e.g. Long for duration, possibly Long for risetime
 		private String risetime;
 		private String duration;
 

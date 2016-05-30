@@ -6,14 +6,17 @@ import android.location.*;
 import android.os.*;
 import android.util.*;
 import android.widget.*;
+import com.android.volley.*;
+import com.android.volley.toolbox.*;
 import com.google.android.gms.common.*;
 import com.google.android.gms.common.api.*;
 import com.google.android.gms.location.*;
+import com.google.gson.*;
 import com.phazor.beepy.position.json.*;
+import java.io.*;
+import java.lang.reflect.*;
 import java.util.*;
-import retrofit2.*;
-import retrofit2.converter.gson.*;
-import retrofit2.http.*;
+import javax.xml.transform.*;
 
 //@Keep
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
@@ -24,7 +27,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	@Override
 	public void onConnected(Bundle bundle) {
 		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-		passTimeText.setText("Sup!!");
+		//passTimeText.setText("Sup!!");
 		// Only check location once, per app run
 		if (!hasLocation) {
 			Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
@@ -51,11 +54,73 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		// TODO: Stub
 	}
 	
+	private Response.Listener<ISSPassTimes> createMyReqSuccessListener() {
+		return new Response.Listener<ISSPassTimes>() {
+			@Override
+			public void onResponse(ISSPassTimes response) {
+				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+				passTimeText.setText(response.getResponse()[0].getRisetime());
+				// Do whatever you want to do with response;
+				// Like response.tags.getListing_count(); etc. etc.
+			}
+		};
+	}
+	
+	private Response.ErrorListener createMyReqErrorListener() {
+		return new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				// Do whatever you want to do with error.getMessage();
+			}
+		};
+	}
+	
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+		
+		RequestQueue queue = Volley.newRequestQueue(this);
+		/*GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(Request.Method.GET,
+															  "http://JSONURL/",
+															  5,
+															  ISSPassTimes.class,
+															  createMyReqSuccessListener(),
+															  createMyReqErrorListener());
+		*/
+		GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>("http://api.open-notify.org/iss-pass.json?lat=16&lon=106",
+																		ISSPassTimes.class,
+																		null,
+																		createMyReqSuccessListener(),
+																		createMyReqErrorListener());
+		// public GsonRequest(String url, Class<T> clazz, Map<String, String> headers, Listener<T> listener, ErrorListener errorListener) {
+		queue.add(myReq);
+		
+		/*
+		// Instantiate the RequestQueue.
+		RequestQueue queue = Volley.newRequestQueue(this);
+		String url ="http://www.google.com";
+
+		// Request a string response from the provided URL.
+		StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+			new Response.Listener<String>() {
+				@Override
+				public void onResponse(String response) {
+					TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+					// Display the first 500 characters of the response string.
+					passTimeText.setText("Response is: "+ response.substring(0,500));
+				}
+			}, new Response.ErrorListener() {
+				@Override
+				public void onErrorResponse(VolleyError error) {
+					TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+					passTimeText.setText("That didn't work!");
+				}
+			});
+		// Add the request to the RequestQueue.
+		queue.add(stringRequest);
+		*/
 		
 		// Create an instance of GoogleAPIClient.
 		if (mGoogleApiClient == null) {
@@ -82,7 +147,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	@Override
 	protected void onResume()
 	{
-		// TODO: Implement this method
 		super.onResume();
 		
 	}
@@ -90,7 +154,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	@Override
 	protected void onPause()
 	{
-		// TODO: Implement this method
 		super.onPause();
 	}
 	
@@ -101,7 +164,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	 * TODO: Come up with a less foolish name
 	 */
 	public void doStuff() {
-		Retrofit retrofit = new Retrofit.Builder()
+	/*	Retrofit retrofit = new Retrofit.Builder()
 			.baseUrl("http://api.open-notify.org/")
 			.addConverterFactory(GsonConverterFactory.create())
 			.build();
@@ -132,12 +195,13 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			}
 		});
 		Log.w("Retrofit", stuff.toString());
+		*/
 	}
 	
 	public void doMoreStuff(ISSCurrentPos issNow) {
 		TextView latitude = (TextView) findViewById(R.id.latitudeText);
 		TextView longitude = (TextView) findViewById(R.id.longitudeText);
-		// TODO: Use String Buffer
+		// TODO: Use String Buffer and convert location to human redable form
 		latitude.setText(issNow.getPosition().getLatitude());
 		latitude.setTextColor(Color.WHITE);
 		longitude.setText(issNow.getPosition().getLongitude());
@@ -147,7 +211,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	public void doYetMoreStuff(final Location currentLocation) {
 		// mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
 		// mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-		
+		/*
 		// TODO: Refactor this out
 		Retrofit retrofit = new Retrofit.Builder()
 			.baseUrl("http://api.open-notify.org/")
@@ -156,14 +220,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
 		ISSPassTimesRetrieverService issPassTimesService = retrofit.create(ISSPassTimesRetrieverService.class);
 
-		Map<String, String> queryMap = new HashMap<String, String>();
-
 		// For now, we've gotta hardcode the location since there seems to
 		// be something funny going on between AIDE, Proguard that strips
 		// method argument annotations on Retrofit		
 		
-		//Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes("16", "106");
-		Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes();
+		Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes(16, 106);
+		//Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes();
 		
 		stuff.enqueue(new Callback<ISSPassTimes>() {
 				@Override
@@ -194,6 +256,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				}
 			});
 		Log.w("Retrofit", stuff.toString());
+		*/
 	}
 	
 	private void showNextPassTime(ISSPassTimes issPassTime, Location currentLocation) {
@@ -216,17 +279,138 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	}
 	
 	public interface ISSNowRetrieverService {
+		/*
 		// http://api.open-notify.org/iss-now.json
 		@GET("iss-now.json")
 		Call<ISSCurrentPos> getISSPos();
+		*/
 	}
 	
 	public interface ISSPassTimesRetrieverService {
+		/*
 		// http://api.open-notify.org/iss-pass.json?lat=LAT&lon=LON
-		@GET("iss-pass.json")
-		Call<ISSPassTimes> getISSPassTimes(@Query("lat") String lat, @Query("lon") String lon);
+		@GET("/iss-pass.json")
+		Call<ISSPassTimes> getISSPassTimes(@retrofit2.http.Query("lat") int lat, @retrofit2.http.Query("lon") int lon);
 		
 		@GET("iss-pass.json?lat=16&lon=106")
 		Call<ISSPassTimes> getISSPassTimes();
+		*/
 	}
+	
+	public class GsonRequest<T> extends Request<T> {
+		private final Gson gson = new Gson();
+		private final Class<T> clazz;
+		private final Map<String, String> headers;
+		private final Response.Listener<T> listener;
+
+		/**
+		 * Make a GET request and return a parsed object from JSON.
+		 *
+		 * @param url URL of the request to make
+		 * @param clazz Relevant class object, for Gson's reflection
+		 * @param headers Map of request headers
+		 */
+		public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
+						   Response.Listener<T> listener, Response.ErrorListener errorListener) {
+			super(Request.Method.GET, url, errorListener);
+			this.clazz = clazz;
+			this.headers = headers;
+			this.listener = listener;
+		}
+
+		@Override
+		public Map<String, String> getHeaders() throws AuthFailureError {
+			return headers != null ? headers : super.getHeaders();
+		}
+
+		@Override
+		protected void deliverResponse(T response) {
+			listener.onResponse(response);
+		}
+
+		@Override
+		protected Response<T> parseNetworkResponse(NetworkResponse response) {
+			try {
+				String json = new String(
+                    response.data,
+                    HttpHeaderParser.parseCharset(response.headers));
+				return Response.success(
+                    gson.fromJson(json, clazz),
+                    HttpHeaderParser.parseCacheHeaders(response));
+			} catch (UnsupportedEncodingException e) {
+				return Response.error(new ParseError(e));
+			} catch (JsonSyntaxException e) {
+				return Response.error(new ParseError(e));
+			}
+		}
+	}
+	
+	/*
+	public class GsonRequest<T> extends Request<T> {
+		private final Gson gson = new Gson();
+		private final Class<T> clazz;
+		private final Map<String, String> headers;
+		private final Listener<T> listener;
+
+		/**
+		 * Make a GET request and return a parsed object from JSON.
+		 *
+		 * @param url URL of the request to make
+		 * @param clazz Relevant class object, for Gson's reflection
+		 * @param headers Map of request headers
+		 */
+		/*public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
+						   Listener<T> listener, ErrorListener errorListener) {
+			super(Method.GET, url, errorListener);
+			this.clazz = clazz;
+			this.headers = headers;
+			this.listener = listener;
+		}
+
+		@Override
+		public Map<String, String> getHeaders() throws AuthFailureError {
+			return headers != null ? headers : super.getHeaders();
+		}
+
+		@Override
+		protected void deliverResponse(T response) {
+			listener.onResponse(response);
+		}
+
+		@Override
+		protected Response<T> parseNetworkResponse(NetworkResponse response) {
+			try {
+				String json = new String(
+					response.data,
+					HttpHeaderParser.parseCharset(response.headers));
+				return Response.success(
+					gson.fromJson(json, clazz),
+					HttpHeaderParser.parseCacheHeaders(response));
+			} catch (UnsupportedEncodingException e) {
+				return Response.error(new ParseError(e));
+			} catch (JsonSyntaxException e) {
+				return Response.error(new ParseError(e));
+			}
+		}
+	} */
+	
+	/*
+	public class ISSPassTimesRequest extends Request<ISSPassTimes>
+	{
+
+		@Override
+		protected Response<ISSPassTimes> parseNetworkResponse(NetworkResponse response)
+		{
+			// TODO: Implement this method
+			return null;
+		}
+
+		@Override
+		protected void deliverResponse(ISSPassTimes response)
+		{
+			// TODO: Implement this method
+		}
+		
+	}
+	*/
 }
