@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
+	compile project(':app:libs:volley')
 	compile 'com.google.android.gms:play-services-location:+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
