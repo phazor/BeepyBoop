@@ -17,6 +17,7 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 import javax.xml.transform.*;
+import java.util.concurrent.*;
 
 //@Keep
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
@@ -39,25 +40,51 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				mGoogleApiClient);
 			if (mLastLocation != null) {
 				hasLocation = true;
-				
-				StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
-				url.append("?lat=");
-				url.append(Math.round(mLastLocation.getLatitude()));
-				url.append("&lon=");
-				url.append(Math.round(mLastLocation.getLongitude()));
+
+				RequestQueue queue = Volley.newRequestQueue(this);
 				
 				// Trigger the request to the ISS Pass Times API
-				RequestQueue queue = Volley.newRequestQueue(this);
-				GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(url.toString(),
-																				ISSPassTimes.class,
-																				null,
-																				createMyReqSuccessListener(),
-																				createMyReqErrorListener());
-				queue.add(myReq);
+				fireISSPassTimesRequest(queue, mLastLocation);
+				// Trigger the request to the Sunrise Sunset API
+				fireSunsetSunriseRequest(queue, mLastLocation);
 				
 				// doYetMoreStuff(mLastLocation);
 			}
 		}
+	}
+	
+	// TODO: Refactor into a separate class
+	private void fireISSPassTimesRequest(RequestQueue queue, Location mLastLocation) {
+		StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
+		url.append("?lat=");
+		url.append(Math.round(mLastLocation.getLatitude()));
+		url.append("&lon=");
+		url.append(Math.round(mLastLocation.getLongitude()));
+		
+		GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(url.toString(),
+																		ISSPassTimes.class,
+																		null,
+																		createISSPassTimesSuccessListener(),
+																		createMyReqErrorListener());
+		queue.add(myReq);
+	}
+	
+	// TODO: Refactor into a separate class
+	private void fireSunsetSunriseRequest(RequestQueue queue, Location mLastLocation) {
+
+		// http://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400
+		StringBuilder url = new StringBuilder("http://api.sunrise-sunset.org/json");
+		url.append("?lat=");
+		url.append(Math.round(mLastLocation.getLatitude()));
+		url.append("&lng=");
+		url.append(Math.round(mLastLocation.getLongitude()));
+
+		GsonRequest<SunriseSunset> myReq = new GsonRequest<SunriseSunset>(url.toString(),
+																		SunriseSunset.class,
+																		null,
+																		createSunriseSunsetSuccessListener(),
+																		createMyReqErrorListener());
+		queue.add(myReq);
 	}
 	
 	// Code that executes when the connection to Google Play Services fails
@@ -79,18 +106,31 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	
 	/*
 	 * This code executes when recieving a successful HTTP response from the Pass Times API
-	 *
-	 * Note: For granularity of error handling this method could be
-	 * newed during creation of each request
 	 */
-	private Response.Listener<ISSPassTimes> createMyReqSuccessListener() {
+	private Response.Listener<ISSPassTimes> createISSPassTimesSuccessListener() {
 		return new Response.Listener<ISSPassTimes>() {
 			@Override
 			public void onResponse(ISSPassTimes response) {
 				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-				passTimeText.setText(response.getResponse()[0].getRisetime());
-				passTimeText.append("success!!");
+				passTimeText.append(response.getResponse()[0].getRisetime());
+				passTimeText.append(" pass-times success!! ");
 				showNextPassTime(response);
+				// Do whatever you want to do with response;
+				// Like response.tags.getListing_count(); etc. etc.
+			}
+		};
+	}
+	
+	/*
+	 * This code executes when recieving a successful HTTP response from the Sunrise Sunset API
+	 */
+	private Response.Listener<SunriseSunset> createSunriseSunsetSuccessListener() {
+		return new Response.Listener<SunriseSunset>() {
+			@Override
+			public void onResponse(SunriseSunset response) {
+				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+				passTimeText.append(response.getResults().getSunrise());
+				passTimeText.append(" sunrise-sunset success!! ");
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.
 			}
@@ -170,7 +210,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Log.w("risetime", "risetime: " + date.toLocaleString());
 			
 			TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-			passTimeText.setText(date.toLocaleString());
+			passTimeText.append(" next pass time: " + date.toLocaleString());
 			passTimeText.setTextColor(Color.WHITE);
 		} else {
 			if (issPassTime.toString().length() < 0) {
