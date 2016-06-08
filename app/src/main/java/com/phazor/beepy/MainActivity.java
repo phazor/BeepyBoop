@@ -18,12 +18,27 @@ import java.lang.reflect.*;
 import java.util.*;
 import javax.xml.transform.*;
 import java.util.concurrent.*;
+import java.text.*;
 
-//@Keep
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
 	private GoogleApiClient mGoogleApiClient;
-	private boolean hasLocation = false;
+	private static boolean hasLocation = false;
+	// Static variable for tracking number of requests made
+	private static int mRequestCount;
+	// Static variable for tracking no. of completed requests
+	private static CountDownLatch mCountDownLatch;
+	
+	// ISO-8601
+	private static SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
+	// The 'specific' ISO-8601 that Sunrise Sunset uses
+	// Java 8 Dates would be great for this type of parsing :)
+	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	
+	// Global
+	// TODO: Figure out a way of putting these in a callback
+	private ISSPassTimes mISSPassTimes;
+	private SunriseSunset mSunriseSunset;
 	
 	/*
 	 * Stuff that happens after connecting to Google Play Services
@@ -32,59 +47,94 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	 */
 	@Override
 	public void onConnected(Bundle bundle) {
-		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-		//passTimeText.setText("Sup!!");
-		// TODO: Only check location once, per app run
+		
+		// TODO: Have a better way of signalling the main commands to run
 		if (!hasLocation) {
 			Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
 				mGoogleApiClient);
 			if (mLastLocation != null) {
 				hasLocation = true;
-
+				
+				this.mRequestCount = 0;
 				RequestQueue queue = Volley.newRequestQueue(this);
+				GsonRequest<ISSPassTimes> request = createISSPassTimesRequest(mLastLocation);
+				queue.add(request);
+				queue.add(createSunsetSunriseRequest(mLastLocation));
 				
-				// Trigger the request to the ISS Pass Times API
-				fireISSPassTimesRequest(queue, mLastLocation);
-				// Trigger the request to the Sunrise Sunset API
-				fireSunsetSunriseRequest(queue, mLastLocation);
+				/* Slightly janky code to run a thread when x number of requests finish.
+				 * Retrofit and RXJava make this easy but cannot be used because parameter
+				 * annotations aren't supported by the mobile IDE I'm using - AIDE.
+				 *
+				 * /sadface
+				 */
+				mCountDownLatch = new CountDownLatch(mRequestCount);
+				final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+				new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+							try {
+								mCountDownLatch.await();
+								mainThreadHandler.post(new Runnable() {
+										@Override
+										public void run() {
+											TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+											passTimeText.append(" All requests finished!! ");
+											
+											// Get ISSPassTimes
+											passTimeText.append(mISSPassTimes.getResponse()[0].getRisetime());
+											passTimeText.append(" pass-times success!! ");
+											
+											// Get SunriseSunset
+											passTimeText.append(mSunriseSunset.getResults().getSunrise());
+											passTimeText.append(" sunrise-sunset success!! ");
+											
+											showNextPassTime(mISSPassTimes, mSunriseSunset);
+										}
+									});
+							}
+							catch (InterruptedException e) {
+								// TODO: Handle this exception
+								e.printStackTrace();
+							}
+						}
+					}).start();
 				
-				// doYetMoreStuff(mLastLocation);
 			}
 		}
 	}
 	
 	// TODO: Refactor into a separate class
-	private void fireISSPassTimesRequest(RequestQueue queue, Location mLastLocation) {
+	private GsonRequest<ISSPassTimes> createISSPassTimesRequest(Location mLastLocation) {
+		this.mRequestCount++;
 		StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
 		url.append("?lat=");
 		url.append(Math.round(mLastLocation.getLatitude()));
 		url.append("&lon=");
 		url.append(Math.round(mLastLocation.getLongitude()));
 		
-		GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(url.toString(),
-																		ISSPassTimes.class,
-																		null,
-																		createISSPassTimesSuccessListener(),
-																		createMyReqErrorListener());
-		queue.add(myReq);
+		return new GsonRequest<ISSPassTimes>(url.toString(),
+											 ISSPassTimes.class,
+											 null,
+											 createISSPassTimesSuccessListener(),
+											 createMyReqErrorListener());
 	}
 	
 	// TODO: Refactor into a separate class
-	private void fireSunsetSunriseRequest(RequestQueue queue, Location mLastLocation) {
-
-		// http://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400
+	private GsonRequest<SunriseSunset> createSunsetSunriseRequest(Location mLastLocation) {
+		this.mRequestCount++;
 		StringBuilder url = new StringBuilder("http://api.sunrise-sunset.org/json");
 		url.append("?lat=");
 		url.append(Math.round(mLastLocation.getLatitude()));
 		url.append("&lng=");
 		url.append(Math.round(mLastLocation.getLongitude()));
+		url.append("&formatted=0");
 
-		GsonRequest<SunriseSunset> myReq = new GsonRequest<SunriseSunset>(url.toString(),
-																		SunriseSunset.class,
-																		null,
-																		createSunriseSunsetSuccessListener(),
-																		createMyReqErrorListener());
-		queue.add(myReq);
+		return new GsonRequest<SunriseSunset>(url.toString(),
+											  SunriseSunset.class,
+											  null,
+											  createSunriseSunsetSuccessListener(),
+											  createMyReqErrorListener());
 	}
 	
 	// Code that executes when the connection to Google Play Services fails
@@ -111,10 +161,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		return new Response.Listener<ISSPassTimes>() {
 			@Override
 			public void onResponse(ISSPassTimes response) {
-				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-				passTimeText.append(response.getResponse()[0].getRisetime());
-				passTimeText.append(" pass-times success!! ");
-				showNextPassTime(response);
+				mCountDownLatch.countDown();
+				mISSPassTimes = response;
+				
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.
 			}
@@ -128,9 +177,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		return new Response.Listener<SunriseSunset>() {
 			@Override
 			public void onResponse(SunriseSunset response) {
-				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-				passTimeText.append(response.getResults().getSunrise());
-				passTimeText.append(" sunrise-sunset success!! ");
+				mCountDownLatch.countDown();
+				mSunriseSunset = response;
+				
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.
 			}
@@ -202,19 +251,54 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		longitude.setTextColor(Color.WHITE);
 	}
 	
-	private void showNextPassTime(ISSPassTimes issPassTime) {
+	// Do some math to determine when the next night-time pass-time is going to be
+	private void showNextPassTime(ISSPassTimes issPassTimes, SunriseSunset sunriseSunset) {
 		Log.w("showNextPassTime", "hello");
-		if (issPassTime.getResponse() != null && issPassTime.getResponse().length > 0) {
-			Log.w("PassTimes", "No. Risetimes" + issPassTime.getResponse().length);
-			Date date = new Date(Long.parseLong(issPassTime.getResponse()[0].getRisetime())*1000);
-			Log.w("risetime", "risetime: " + date.toLocaleString());
+		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+		// Current Time (US Time, to match the other APIs)
+		//Calendar now = Calendar.getInstance(Locale.US);
+		Date now = new Date();
+		
+		
+		try {
+			// Current Sunrise Time
+			Date sunrise = sdf.parse(sunriseSunset.getResults().getSunrise());
+			// Current Sunset Time
+			Date sunset = sdf.parse(sunriseSunset.getResults().getSunset());
 			
-			TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
+			/* It would be great to write this using functional methods
+			 * However AIDE doesn't support Java 8, hence no .filter()
+			 * TODO: Convert to Guava, use appropriate pro-guard settings
+			 *
+			 * /sadface
+			 */
+			// Are we currently in day-time?
+			if ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0)) {
+				passTimeText.append(" we're in night time!!");
+			} else {
+				passTimeText.append(" we're in day time!!");
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+			
+		// If yes, when is the next pass?
+		
+		// If no, when is the next night-time pass?
+		
+		// End
+		if (issPassTimes.getResponse() != null && issPassTimes.getResponse().length > 0) {
+			Log.w("PassTimes", "No. Risetimes" + issPassTimes.getResponse().length);
+			Date date = new Date(Long.parseLong(issPassTimes.getResponse()[0].getRisetime())*1000);
+			Log.w("risetime", "risetime: " + date.toLocaleString());
 			passTimeText.append(" next pass time: " + date.toLocaleString());
 			passTimeText.setTextColor(Color.WHITE);
 		} else {
-			if (issPassTime.toString().length() < 0) {
-				Log.w("error - passTimes", "msg: " + issPassTime.toString());	
+			if (issPassTimes.toString().length() < 0) {
+				Log.w("error - passTimes", "msg: " + issPassTimes.toString());	
 			}
 			Log.w("error - passTimes", "isPassTime.toString().length() = 0");
 		}
