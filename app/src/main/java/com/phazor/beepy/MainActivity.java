@@ -117,40 +117,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-		/*GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(Request.Method.GET,
-		 "http://JSONURL/",
-		 5,
-		 ISSPassTimes.class,
-		 createMyReqSuccessListener(),
-		 createMyReqErrorListener());
-		 */
-		// public GsonRequest(String url, Class<T> clazz, Map<String, String> headers, Listener<T> listener, ErrorListener errorListener) {
-		
-		/*
-		// Instantiate the RequestQueue.
-		RequestQueue queue = Volley.newRequestQueue(this);
-		String url ="http://www.google.com";
-
-		// Request a string response from the provided URL.
-		StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-			new Response.Listener<String>() {
-				@Override
-				public void onResponse(String response) {
-					TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-					// Display the first 500 characters of the response string.
-					passTimeText.setText("Response is: "+ response.substring(0,500));
-				}
-			}, new Response.ErrorListener() {
-				@Override
-				public void onErrorResponse(VolleyError error) {
-					TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-					passTimeText.setText("That didn't work!");
-				}
-			});
-		// Add the request to the RequestQueue.
-		queue.add(stringRequest);
-		*/
 		
 		// Create an instance of GoogleAPIClient.
 		// This allows us to later query Google Play Services for location
@@ -161,8 +127,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				.addApi(LocationServices.API)
 				.build();
 		}
-		doStuff();
-		
     }
 	
 	protected void onStart() {
@@ -188,48 +152,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		super.onPause();
 	}
 	
-	/*
-	 * doStuff
-	 * 
-	 * This method does exactly what it says on the tin
-	 * TODO: Come up with a less foolish name
-	 */
-	public void doStuff() {
-	/*	Retrofit retrofit = new Retrofit.Builder()
-			.baseUrl("http://api.open-notify.org/")
-			.addConverterFactory(GsonConverterFactory.create())
-			.build();
-			
-		ISSNowRetrieverService issService = retrofit.create(ISSNowRetrieverService.class);
-		
-		Call<ISSCurrentPos> stuff = issService.getISSPos();
-		stuff.enqueue(new Callback<ISSCurrentPos>() {
-			@Override
-			public void onResponse(Call<ISSCurrentPos> c, Response<ISSCurrentPos> response) {
-				try {
-					Log.w("blah", "blah");
-					Log.w("blah", response.body().getMessage());
-					doMoreStuff(response.body());
-				} catch(Exception ex) {
-					Log.w("blah", "cripes");
-				}
-			}
-			
-			@Override
-			public void onFailure(Call<ISSCurrentPos> c, Throwable t) {
-				// TODO: Handle when no internet connection is present
-				Log.w("blah", "faill");
-				if (t.getMessage().length() > 0) {
-					Log.w("error", t.getMessage());
-				}
-				// Ruh roh, no internet!
-			}
-		});
-		Log.w("Retrofit", stuff.toString());
-		*/
-	}
-	
-	public void doMoreStuff(ISSCurrentPos issNow) {
+	public void doStuff(ISSCurrentPos issNow) {
 		TextView latitude = (TextView) findViewById(R.id.latitudeText);
 		TextView longitude = (TextView) findViewById(R.id.longitudeText);
 		// TODO: Use String Buffer and convert location to human redable form
@@ -237,57 +160,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		latitude.setTextColor(Color.WHITE);
 		longitude.setText(issNow.getPosition().getLongitude());
 		longitude.setTextColor(Color.WHITE);
-	}
-	
-	public void doYetMoreStuff(final Location currentLocation) {
-		// mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-		// mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-		/*
-		// TODO: Refactor this out
-		Retrofit retrofit = new Retrofit.Builder()
-			.baseUrl("http://api.open-notify.org/")
-			.addConverterFactory(GsonConverterFactory.create())
-			.build();
-
-		ISSPassTimesRetrieverService issPassTimesService = retrofit.create(ISSPassTimesRetrieverService.class);
-
-		// For now, we've gotta hardcode the location since there seems to
-		// be something funny going on between AIDE, Proguard that strips
-		// method argument annotations on Retrofit		
-		
-		Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes(16, 106);
-		//Call<ISSPassTimes> stuff = issPassTimesService.getISSPassTimes();
-		
-		stuff.enqueue(new Callback<ISSPassTimes>() {
-				@Override
-				public void onResponse(Call<ISSPassTimes> c, Response<ISSPassTimes> response) {
-					try {
-						Log.w("PassTimes", "blah");
-						Log.w("PassTimes", "msg: " + response.body().getMessage());
-						showNextPassTime(response.body(), currentLocation);
-					} catch(Exception ex) {
-						Log.w("PassTimes", "cripes");
-						if (ex != null && ex.getMessage().length() > 0) {							
-							ex.printStackTrace();
-							if (ex.getCause() != null) {
-								ex.getCause().printStackTrace();
-							}
-						}
-					}
-				}
-
-				@Override
-				public void onFailure(Call<ISSPassTimes> c, Throwable t) {
-					// TODO: Handle when no internet connection is present
-					Log.w("PassTimes", "faill");
-					if (t.getMessage().length() > 0) {
-						Log.w("error - passTimes", t.getMessage());
-					}
-					// Ruh roh, no internet!
-				}
-			});
-		Log.w("Retrofit", stuff.toString());
-		*/
 	}
 	
 	private void showNextPassTime(ISSPassTimes issPassTime) {
@@ -306,25 +178,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			}
 			Log.w("error - passTimes", "isPassTime.toString().length() = 0");
 		}
-	}
-	
-	public interface ISSNowRetrieverService {
-		/*
-		// http://api.open-notify.org/iss-now.json
-		@GET("iss-now.json")
-		Call<ISSCurrentPos> getISSPos();
-		*/
-	}
-	
-	public interface ISSPassTimesRetrieverService {
-		/*
-		// http://api.open-notify.org/iss-pass.json?lat=LAT&lon=LON
-		@GET("/iss-pass.json")
-		Call<ISSPassTimes> getISSPassTimes(@retrofit2.http.Query("lat") int lat, @retrofit2.http.Query("lon") int lon);
-		
-		@GET("iss-pass.json?lat=16&lon=106")
-		Call<ISSPassTimes> getISSPassTimes();
-		*/
 	}
 	
 	public class GsonRequest<T> extends Request<T> {
@@ -375,72 +228,4 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		}
 	}
 	
-	/*
-	public class GsonRequest<T> extends Request<T> {
-		private final Gson gson = new Gson();
-		private final Class<T> clazz;
-		private final Map<String, String> headers;
-		private final Listener<T> listener;
-
-		/**
-		 * Make a GET request and return a parsed object from JSON.
-		 *
-		 * @param url URL of the request to make
-		 * @param clazz Relevant class object, for Gson's reflection
-		 * @param headers Map of request headers
-		 */
-		/*public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
-						   Listener<T> listener, ErrorListener errorListener) {
-			super(Method.GET, url, errorListener);
-			this.clazz = clazz;
-			this.headers = headers;
-			this.listener = listener;
-		}
-
-		@Override
-		public Map<String, String> getHeaders() throws AuthFailureError {
-			return headers != null ? headers : super.getHeaders();
-		}
-
-		@Override
-		protected void deliverResponse(T response) {
-			listener.onResponse(response);
-		}
-
-		@Override
-		protected Response<T> parseNetworkResponse(NetworkResponse response) {
-			try {
-				String json = new String(
-					response.data,
-					HttpHeaderParser.parseCharset(response.headers));
-				return Response.success(
-					gson.fromJson(json, clazz),
-					HttpHeaderParser.parseCacheHeaders(response));
-			} catch (UnsupportedEncodingException e) {
-				return Response.error(new ParseError(e));
-			} catch (JsonSyntaxException e) {
-				return Response.error(new ParseError(e));
-			}
-		}
-	} */
-	
-	/*
-	public class ISSPassTimesRequest extends Request<ISSPassTimes>
-	{
-
-		@Override
-		protected Response<ISSPassTimes> parseNetworkResponse(NetworkResponse response)
-		{
-			// TODO: Implement this method
-			return null;
-		}
-
-		@Override
-		protected void deliverResponse(ISSPassTimes response)
-		{
-			// TODO: Implement this method
-		}
-		
-	}
-	*/
 }
