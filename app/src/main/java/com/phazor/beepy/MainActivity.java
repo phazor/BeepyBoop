@@ -13,6 +13,7 @@ import com.google.android.gms.common.api.*;
 import com.google.android.gms.location.*;
 import com.google.gson.*;
 import com.phazor.beepy.position.json.*;
+import com.phazor.beepy.network.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -25,20 +26,20 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	private GoogleApiClient mGoogleApiClient;
 	private static boolean hasLocation = false;
 	// Static variable for tracking number of requests made
-	private static int mRequestCount;
+	public static int mRequestCount;
 	// Static variable for tracking no. of completed requests
-	private static CountDownLatch mCountDownLatch;
+	public static CountDownLatch mCountDownLatch;
+	// TODO: Figure out a way of putting these in a callback
+	public static ISSPassTimes mISSPassTimes;
+	public static SunriseSunset mSunriseSunset;
 	
+	// TODO - refactor the parsing into the POJO to be able to address error handling
+	// in the response handler
 	// ISO-8601
 	private static SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
 	// The 'specific' ISO-8601 that Sunrise Sunset uses
 	// Java 8 Dates would be great for this type of parsing :)
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-	
-	// Global
-	// TODO: Figure out a way of putting these in a callback
-	private ISSPassTimes mISSPassTimes;
-	private SunriseSunset mSunriseSunset;
 	
 	/*
 	 * Stuff that happens after connecting to Google Play Services
@@ -57,9 +58,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				
 				this.mRequestCount = 0;
 				RequestQueue queue = Volley.newRequestQueue(this);
-				GsonRequest<ISSPassTimes> request = createISSPassTimesRequest(mLastLocation);
+				GsonRequest<ISSPassTimes> request = ISSPassTimesRequestCreator.createISSPassTimesRequest(mLastLocation);
 				queue.add(request);
-				queue.add(createSunsetSunriseRequest(mLastLocation));
+				queue.add(SunsetSunriseRequestCreator.createSunsetSunriseRequest(mLastLocation));
 				
 				/* Slightly janky code to run a thread when x number of requests finish.
 				 * Retrofit and RXJava make this easy but cannot be used because parameter
@@ -104,39 +105,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		}
 	}
 	
-	// TODO: Refactor into a separate class
-	private GsonRequest<ISSPassTimes> createISSPassTimesRequest(Location mLastLocation) {
-		this.mRequestCount++;
-		StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
-		url.append("?lat=");
-		url.append(Math.round(mLastLocation.getLatitude()));
-		url.append("&lon=");
-		url.append(Math.round(mLastLocation.getLongitude()));
-		
-		return new GsonRequest<ISSPassTimes>(url.toString(),
-											 ISSPassTimes.class,
-											 null,
-											 createISSPassTimesSuccessListener(),
-											 createMyReqErrorListener());
-	}
-	
-	// TODO: Refactor into a separate class
-	private GsonRequest<SunriseSunset> createSunsetSunriseRequest(Location mLastLocation) {
-		this.mRequestCount++;
-		StringBuilder url = new StringBuilder("http://api.sunrise-sunset.org/json");
-		url.append("?lat=");
-		url.append(Math.round(mLastLocation.getLatitude()));
-		url.append("&lng=");
-		url.append(Math.round(mLastLocation.getLongitude()));
-		url.append("&formatted=0");
-
-		return new GsonRequest<SunriseSunset>(url.toString(),
-											  SunriseSunset.class,
-											  null,
-											  createSunriseSunsetSuccessListener(),
-											  createMyReqErrorListener());
-	}
-	
 	// Code that executes when the connection to Google Play Services fails
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
@@ -152,53 +120,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
 		passTimeText.setText("Suspended :D");
 		// TODO: Stub
-	}
-	
-	/*
-	 * This code executes when recieving a successful HTTP response from the Pass Times API
-	 */
-	private Response.Listener<ISSPassTimes> createISSPassTimesSuccessListener() {
-		return new Response.Listener<ISSPassTimes>() {
-			@Override
-			public void onResponse(ISSPassTimes response) {
-				mCountDownLatch.countDown();
-				mISSPassTimes = response;
-				
-				// Do whatever you want to do with response;
-				// Like response.tags.getListing_count(); etc. etc.
-			}
-		};
-	}
-	
-	/*
-	 * This code executes when recieving a successful HTTP response from the Sunrise Sunset API
-	 */
-	private Response.Listener<SunriseSunset> createSunriseSunsetSuccessListener() {
-		return new Response.Listener<SunriseSunset>() {
-			@Override
-			public void onResponse(SunriseSunset response) {
-				mCountDownLatch.countDown();
-				mSunriseSunset = response;
-				
-				// Do whatever you want to do with response;
-				// Like response.tags.getListing_count(); etc. etc.
-			}
-		};
-	}
-	
-	/*
-	 * Handle all HTTP Request errors here
-	 *
-	 * Note: For granularity of error handling this method could be
-	 * newed during creation of each request
-	 */
-	private Response.ErrorListener createMyReqErrorListener() {
-		return new Response.ErrorListener() {
-			@Override
-			public void onErrorResponse(VolleyError error) {
-				// Do whatever you want to do with error.getMessage();
-			}
-		};
 	}
 	
     @Override
@@ -251,6 +172,13 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		longitude.setTextColor(Color.WHITE);
 	}
 	
+	private boolean isDayTime(SunriseSunset sunriseSunset) throws ParseException {
+		Date now = new Date();
+		Date sunrise = sdf.parse(sunriseSunset.getResults().getSunrise());
+		Date sunset = sdf.parse(sunriseSunset.getResults().getSunset());
+		return ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0));
+	}
+	
 	// Do some math to determine when the next night-time pass-time is going to be
 	private void showNextPassTime(ISSPassTimes issPassTimes, SunriseSunset sunriseSunset) {
 		Log.w("showNextPassTime", "hello");
@@ -259,13 +187,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		//Calendar now = Calendar.getInstance(Locale.US);
 		Date now = new Date();
 		
-		
 		try {
-			// Current Sunrise Time
-			Date sunrise = sdf.parse(sunriseSunset.getResults().getSunrise());
-			// Current Sunset Time
-			Date sunset = sdf.parse(sunriseSunset.getResults().getSunset());
-			
 			/* It would be great to write this using functional methods
 			 * However AIDE doesn't support Java 8, hence no .filter()
 			 * TODO: Convert to Guava, use appropriate pro-guard settings
@@ -273,7 +195,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			 * /sadface
 			 */
 			// Are we currently in day-time?
-			if ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0)) {
+			if (isDayTime(sunriseSunset)) {
+			//if ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0)) {
 				passTimeText.append(" we're in night time!!");
 			} else {
 				passTimeText.append(" we're in day time!!");
@@ -301,54 +224,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 				Log.w("error - passTimes", "msg: " + issPassTimes.toString());	
 			}
 			Log.w("error - passTimes", "isPassTime.toString().length() = 0");
-		}
-	}
-	
-	public class GsonRequest<T> extends Request<T> {
-		private final Gson gson = new Gson();
-		private final Class<T> clazz;
-		private final Map<String, String> headers;
-		private final Response.Listener<T> listener;
-
-		/**
-		 * Make a GET request and return a parsed object from JSON.
-		 *
-		 * @param url URL of the request to make
-		 * @param clazz Relevant class object, for Gson's reflection
-		 * @param headers Map of request headers
-		 */
-		public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
-						   Response.Listener<T> listener, Response.ErrorListener errorListener) {
-			super(Request.Method.GET, url, errorListener);
-			this.clazz = clazz;
-			this.headers = headers;
-			this.listener = listener;
-		}
-
-		@Override
-		public Map<String, String> getHeaders() throws AuthFailureError {
-			return headers != null ? headers : super.getHeaders();
-		}
-
-		@Override
-		protected void deliverResponse(T response) {
-			listener.onResponse(response);
-		}
-
-		@Override
-		protected Response<T> parseNetworkResponse(NetworkResponse response) {
-			try {
-				String json = new String(
-                    response.data,
-                    HttpHeaderParser.parseCharset(response.headers));
-				return Response.success(
-                    gson.fromJson(json, clazz),
-                    HttpHeaderParser.parseCacheHeaders(response));
-			} catch (UnsupportedEncodingException e) {
-				return Response.error(new ParseError(e));
-			} catch (JsonSyntaxException e) {
-				return Response.error(new ParseError(e));
-			}
 		}
 	}
 	
