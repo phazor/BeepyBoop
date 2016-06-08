@@ -24,21 +24,43 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	private GoogleApiClient mGoogleApiClient;
 	private boolean hasLocation = false;
 	
+	/*
+	 * Stuff that happens after connecting to Google Play Services
+	 * 
+	 * Specifically: Retrieving location and subsequently triggering the UI to update
+	 */
 	@Override
 	public void onConnected(Bundle bundle) {
 		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
 		//passTimeText.setText("Sup!!");
-		// Only check location once, per app run
+		// TODO: Only check location once, per app run
 		if (!hasLocation) {
 			Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
 				mGoogleApiClient);
 			if (mLastLocation != null) {
 				hasLocation = true;
-				doYetMoreStuff(mLastLocation);
+				
+				StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
+				url.append("?lat=");
+				url.append(Math.round(mLastLocation.getLatitude()));
+				url.append("&lon=");
+				url.append(Math.round(mLastLocation.getLongitude()));
+				
+				// Trigger the request to the ISS Pass Times API
+				RequestQueue queue = Volley.newRequestQueue(this);
+				GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(url.toString(),
+																				ISSPassTimes.class,
+																				null,
+																				createMyReqSuccessListener(),
+																				createMyReqErrorListener());
+				queue.add(myReq);
+				
+				// doYetMoreStuff(mLastLocation);
 			}
 		}
 	}
 	
+	// Code that executes when the connection to Google Play Services fails
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		// TODO: Prompt the user to update google play services, if it is out of date
@@ -47,6 +69,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		// TODO: Stub
 	}
 	
+	// Code that executes when the connection to Google Play Services is suspended
 	@Override
 	public void onConnectionSuspended(int val) {
 		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
@@ -54,18 +77,32 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		// TODO: Stub
 	}
 	
+	/*
+	 * This code executes when recieving a successful HTTP response from the Pass Times API
+	 *
+	 * Note: For granularity of error handling this method could be
+	 * newed during creation of each request
+	 */
 	private Response.Listener<ISSPassTimes> createMyReqSuccessListener() {
 		return new Response.Listener<ISSPassTimes>() {
 			@Override
 			public void onResponse(ISSPassTimes response) {
 				TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
 				passTimeText.setText(response.getResponse()[0].getRisetime());
+				passTimeText.append("success!!");
+				showNextPassTime(response);
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.
 			}
 		};
 	}
 	
+	/*
+	 * Handle all HTTP Request errors here
+	 *
+	 * Note: For granularity of error handling this method could be
+	 * newed during creation of each request
+	 */
 	private Response.ErrorListener createMyReqErrorListener() {
 		return new Response.ErrorListener() {
 			@Override
@@ -80,22 +117,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-		
-		RequestQueue queue = Volley.newRequestQueue(this);
+
 		/*GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>(Request.Method.GET,
-															  "http://JSONURL/",
-															  5,
-															  ISSPassTimes.class,
-															  createMyReqSuccessListener(),
-															  createMyReqErrorListener());
-		*/
-		GsonRequest<ISSPassTimes> myReq = new GsonRequest<ISSPassTimes>("http://api.open-notify.org/iss-pass.json?lat=16&lon=106",
-																		ISSPassTimes.class,
-																		null,
-																		createMyReqSuccessListener(),
-																		createMyReqErrorListener());
+		 "http://JSONURL/",
+		 5,
+		 ISSPassTimes.class,
+		 createMyReqSuccessListener(),
+		 createMyReqErrorListener());
+		 */
 		// public GsonRequest(String url, Class<T> clazz, Map<String, String> headers, Listener<T> listener, ErrorListener errorListener) {
-		queue.add(myReq);
 		
 		/*
 		// Instantiate the RequestQueue.
@@ -123,6 +153,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		*/
 		
 		// Create an instance of GoogleAPIClient.
+		// This allows us to later query Google Play Services for location
 		if (mGoogleApiClient == null) {
 			mGoogleApiClient = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
@@ -259,7 +290,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		*/
 	}
 	
-	private void showNextPassTime(ISSPassTimes issPassTime, Location currentLocation) {
+	private void showNextPassTime(ISSPassTimes issPassTime) {
 		Log.w("showNextPassTime", "hello");
 		if (issPassTime.getResponse() != null && issPassTime.getResponse().length > 0) {
 			Log.w("PassTimes", "No. Risetimes" + issPassTime.getResponse().length);
@@ -267,8 +298,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			Log.w("risetime", "risetime: " + date.toLocaleString());
 			
 			TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-			//passTimeText.setText(date.toLocaleString());
-			passTimeText.setText(String.valueOf(currentLocation.getAltitude()));
+			passTimeText.setText(date.toLocaleString());
 			passTimeText.setTextColor(Color.WHITE);
 		} else {
 			if (issPassTime.toString().length() < 0) {
