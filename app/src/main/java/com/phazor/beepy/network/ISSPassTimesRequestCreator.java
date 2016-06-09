@@ -8,12 +8,15 @@ import com.phazor.beepy.position.json.*;
 public class ISSPassTimesRequestCreator
 {
 	public static GsonRequest<ISSPassTimes> createISSPassTimesRequest(Location mLastLocation) {
+		int resultCount = 15;
 		MainActivity.mRequestCount++;
 		StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
 		url.append("?lat=");
 		url.append(Math.round(mLastLocation.getLatitude()));
 		url.append("&lon=");
 		url.append(Math.round(mLastLocation.getLongitude()));
+		url.append("&n=");
+		url.append(resultCount);
 
 		return new GsonRequest<ISSPassTimes>(url.toString(),
 											 ISSPassTimes.class,

@@ -1,17 +1,18 @@
 package com.phazor.beepy.position.json;
+import java.util.*;
 
 public class ISSPassTimes
 {
 	private String message;
 	private Request request;
-	private Response[] response;
+	private List<Response> response;
 
-	public void setResponse(Response[] response)
+	public void setResponse(List<Response> response)
 	{
 		this.response = response;
 	}
 
-	public Response[] getResponse()
+	public List<Response> getResponse()
 	{
 		return response;
 	}

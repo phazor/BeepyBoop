@@ -83,7 +83,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 											passTimeText.append(" All requests finished!! ");
 											
 											// Get ISSPassTimes
-											passTimeText.append(mISSPassTimes.getResponse()[0].getRisetime());
+											passTimeText.append(mISSPassTimes.getResponse().get(0).getRisetime());
 											passTimeText.append(" pass-times success!! ");
 											
 											// Get SunriseSunset
@@ -190,12 +190,14 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		// If no, when is the next night-time pass?
 		
 		// End
-		if (issPassTimes.getResponse() != null && issPassTimes.getResponse().length > 0) {
-			Log.w("PassTimes", "No. Risetimes" + issPassTimes.getResponse().length);
-			Date date = new Date(Long.parseLong(issPassTimes.getResponse()[0].getRisetime())*1000);
+		if (issPassTimes.getResponse() != null && issPassTimes.getResponse().size() > 0) {
+			Log.w("PassTimes", "No. Risetimes" + issPassTimes.getResponse().size());
+			// Multiply by 1000 to get the Pass Time in milliseconds
+			Date date = new Date(Long.parseLong(issPassTimes.getResponse().get(0).getRisetime())*1000);
 			Log.w("risetime", "risetime: " + date.toLocaleString());
 			passTimeText.append(" next pass time: " + date.toLocaleString());
 			passTimeText.setTextColor(Color.WHITE);
+			passTimeText.append(" number of results: " + issPassTimes.getResponse().size());
 		} else {
 			if (issPassTimes.toString().length() < 0) {
 				Log.w("error - passTimes", "msg: " + issPassTimes.toString());	
