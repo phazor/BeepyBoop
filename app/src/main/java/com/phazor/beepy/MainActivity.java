@@ -148,29 +148,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 		mGoogleApiClient.disconnect();
 		super.onStop();
 	}
-
-	@Override
-	protected void onResume()
-	{
-		super.onResume();
-		
-	}
-
-	@Override
-	protected void onPause()
-	{
-		super.onPause();
-	}
-	
-	public void doStuff(ISSCurrentPos issNow) {
-		TextView latitude = (TextView) findViewById(R.id.latitudeText);
-		TextView longitude = (TextView) findViewById(R.id.longitudeText);
-		// TODO: Use String Buffer and convert location to human redable form
-		latitude.setText(issNow.getPosition().getLatitude());
-		latitude.setTextColor(Color.WHITE);
-		longitude.setText(issNow.getPosition().getLongitude());
-		longitude.setTextColor(Color.WHITE);
-	}
 	
 	private boolean isDayTime(SunriseSunset sunriseSunset) throws ParseException {
 		Date now = new Date();
