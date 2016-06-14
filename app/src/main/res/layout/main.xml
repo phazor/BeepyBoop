@@ -70,7 +70,7 @@
 			android:layout_height="wrap_content"
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
-			android:text="Current Position:"
+			android:text="Countdown"
 			android:textColor="#FFFFFF"/>
 
 		<TextView
@@ -78,14 +78,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
 			android:text="Loading..."
-			android:id="@+id/latitudeText"/>
-
-		<TextView
-			android:layout_height="wrap_content"
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:layout_width="wrap_content"
-			android:text="Loading..."
-			android:id="@+id/longitudeText"/>
+			android:id="@+id/countdownText"/>
 
 	</LinearLayout>
 

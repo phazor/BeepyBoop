@@ -23,8 +23,6 @@ import java.text.*;
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
-	private GoogleApiClient mGoogleApiClient;
-	private static boolean hasLocation = false;
 	// Static variable for tracking number of requests made
 	public static int mRequestCount;
 	// Static variable for tracking no. of completed requests
@@ -33,13 +31,11 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	public static ISSPassTimes mISSPassTimes;
 	public static SunriseSunset mSunriseSunset;
 	
-	// TODO - refactor the parsing into the POJO to be able to address error handling
-	// in the response handler
-	// ISO-8601
-	private static SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
+	private GoogleApiClient mGoogleApiClient;
+	private boolean hasLocation = false;
 	// The 'specific' ISO-8601 that Sunrise Sunset uses
 	// Java 8 Dates would be great for this type of parsing :)
-	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	
 	/*
 	 * Stuff that happens after connecting to Google Play Services
@@ -56,10 +52,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 			if (mLastLocation != null) {
 				hasLocation = true;
 				
+				Log.w("beepy", "Queueing HTTP requests");
 				this.mRequestCount = 0;
 				RequestQueue queue = Volley.newRequestQueue(this);
-				GsonRequest<ISSPassTimes> request = ISSPassTimesRequestCreator.createISSPassTimesRequest(mLastLocation);
-				queue.add(request);
+				queue.add(ISSPassTimesRequestCreator.createISSPassTimesRequest(mLastLocation));
 				queue.add(SunsetSunriseRequestCreator.createSunsetSunriseRequest(mLastLocation));
 				
 				/* Slightly janky code to run a thread when x number of requests finish.
@@ -79,16 +75,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 								mainThreadHandler.post(new Runnable() {
 										@Override
 										public void run() {
-											TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-											passTimeText.append(" All requests finished!! ");
+											Log.w("beepy", "All requests finished!! ");
 											
 											// Get ISSPassTimes
-											passTimeText.append(mISSPassTimes.getResponse().get(0).getRisetime());
-											passTimeText.append(" pass-times success!! ");
+											Log.w("beepy", "first pass-time:");
+											Log.w("beepy", mISSPassTimes.getResponse().get(0).getRisetime());
 											
 											// Get SunriseSunset
-											passTimeText.append(mSunriseSunset.getResults().getSunrise());
-											passTimeText.append(" sunrise-sunset success!! ");
+											Log.w("beepy", "sunrise-sunset:");
+											Log.w("beepy", mSunriseSunset.getResults().getSunrise());
 											
 											showNextPassTime(mISSPassTimes, mSunriseSunset);
 										}
@@ -100,7 +95,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 							}
 						}
 					}).start();
-				
 			}
 		}
 	}
@@ -160,49 +154,38 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 	private void showNextPassTime(ISSPassTimes issPassTimes, SunriseSunset sunriseSunset) {
 		Log.w("showNextPassTime", "hello");
 		TextView passTimeText = (TextView) findViewById(R.id.passTimeText);
-		// Current Time (US Time, to match the other APIs)
-		//Calendar now = Calendar.getInstance(Locale.US);
-		Date now = new Date();
-		
 		try {
-			/* It would be great to write this using functional methods
+			/* It would be nice to write this using functional methods
 			 * However AIDE doesn't support Java 8, hence no .filter()
-			 * TODO: Convert to Guava, use appropriate pro-guard settings
+			 * Refactor this if Guava gets pulled in, and apply the 
+			 * appropriate Pro-Guard settings.
 			 *
 			 * /sadface
 			 */
+			// Initially set Next Visible Pass to be the next pass
+			Date nextVisiblePass = new Date(Long.parseLong(issPassTimes.getResponse().get(0).getRisetime())*1000);
 			// Are we currently in day-time?
 			if (isDayTime(sunriseSunset)) {
-			//if ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0)) {
-				passTimeText.append(" we're in night time!!");
+				// If yes, when is the next pass?
+				Log.w("beepy", "we're in night time!!");
 			} else {
-				passTimeText.append(" we're in day time!!");
+				// If no, when is the next night-time pass?
+				Log.w("beepy", "we're in day time!!");
+				Iterator<ISSPassTimes.Response> i = issPassTimes.getResponse().iterator();
+				for (ISSPassTimes.Response response : issPassTimes.getResponse()) {
+					Date thisDate = new Date(Long.parseLong(response.getRisetime())*1000);
+					passTimeText.append(" pass timez: " + thisDate.toLocaleString());
+					Date sunsetDate = sdf.parse(sunriseSunset.getResults().getSunset());
+					if (thisDate.after(sunsetDate)) {
+						nextVisiblePass = thisDate;
+						break;
+					}
+				}
 			}
+			Log.w("beepy", "next visible pass time: " + nextVisiblePass.toLocaleString());
+			passTimeText.setText(nextVisiblePass.toLocaleString());
 		} catch (ParseException e) {
 			e.printStackTrace();
-		}
-		
-		
-		
-			
-		// If yes, when is the next pass?
-		
-		// If no, when is the next night-time pass?
-		
-		// End
-		if (issPassTimes.getResponse() != null && issPassTimes.getResponse().size() > 0) {
-			Log.w("PassTimes", "No. Risetimes" + issPassTimes.getResponse().size());
-			// Multiply by 1000 to get the Pass Time in milliseconds
-			Date date = new Date(Long.parseLong(issPassTimes.getResponse().get(0).getRisetime())*1000);
-			Log.w("risetime", "risetime: " + date.toLocaleString());
-			passTimeText.append(" next pass time: " + date.toLocaleString());
-			passTimeText.setTextColor(Color.WHITE);
-			passTimeText.append(" number of results: " + issPassTimes.getResponse().size());
-		} else {
-			if (issPassTimes.toString().length() < 0) {
-				Log.w("error - passTimes", "msg: " + issPassTimes.toString());	
-			}
-			Log.w("error - passTimes", "isPassTime.toString().length() = 0");
 		}
 	}
 	
