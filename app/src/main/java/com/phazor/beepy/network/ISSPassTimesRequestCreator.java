@@ -2,14 +2,14 @@ package com.phazor.beepy.network;
 
 import android.location.*;
 import com.android.volley.*;
-import com.phazor.beepy.*;
+import com.phazor.beepy.fragments.*;
 import com.phazor.beepy.position.json.*;
 
 public class ISSPassTimesRequestCreator
 {
 	public static GsonRequest<ISSPassTimes> createISSPassTimesRequest(Location mLastLocation) {
 		int resultCount = 15;
-		MainActivity.mRequestCount++;
+		CountdownFragment.mRequestCount++;
 		StringBuilder url = new StringBuilder("http://api.open-notify.org/iss-pass.json");
 		url.append("?lat=");
 		url.append(Math.round(mLastLocation.getLatitude()));
@@ -32,8 +32,8 @@ public class ISSPassTimesRequestCreator
 		return new Response.Listener<ISSPassTimes>() {
 			@Override
 			public void onResponse(ISSPassTimes response) {
-				MainActivity.mCountDownLatch.countDown();
-				MainActivity.mISSPassTimes = response;
+				CountdownFragment.mCountDownLatch.countDown();
+				CountdownFragment.mISSPassTimes = response;
 
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.

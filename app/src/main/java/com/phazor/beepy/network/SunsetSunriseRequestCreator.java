@@ -2,13 +2,13 @@ package com.phazor.beepy.network;
 
 import android.location.*;
 import com.android.volley.*;
-import com.phazor.beepy.*;
+import com.phazor.beepy.fragments.*;
 import com.phazor.beepy.position.json.*;
 
 public class SunsetSunriseRequestCreator
 {
 	public static GsonRequest<SunriseSunset> createSunsetSunriseRequest(Location mLastLocation) {
-		MainActivity.mRequestCount++;
+		CountdownFragment.mRequestCount++;
 		StringBuilder url = new StringBuilder("http://api.sunrise-sunset.org/json");
 		url.append("?lat=");
 		url.append(Math.round(mLastLocation.getLatitude()));
@@ -30,8 +30,8 @@ public class SunsetSunriseRequestCreator
 		return new Response.Listener<SunriseSunset>() {
 			@Override
 			public void onResponse(SunriseSunset response) {
-				MainActivity.mCountDownLatch.countDown();
-				MainActivity.mSunriseSunset = response;
+				CountdownFragment.mCountDownLatch.countDown();
+				CountdownFragment.mSunriseSunset = response;
 
 				// Do whatever you want to do with response;
 				// Like response.tags.getListing_count(); etc. etc.

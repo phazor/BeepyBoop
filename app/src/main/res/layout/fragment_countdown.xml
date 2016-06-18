@@ -12,14 +12,16 @@
 		android:scaleType="centerCrop"
 		android:src="@drawable/space_bkg"
 		android:background="#000000"
-		android:alpha="0.7"/>
+		android:alpha="0.7"
+		android:id="@+id/mainImageView1"/>
 
 	<LinearLayout
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:gravity="center"
 		android:weightSum="100"
-		android:orientation="vertical">
+		android:orientation="vertical"
+		android:id="@+id/mainLinearLayout1">
 
 		<LinearLayout
 			android:layout_weight="50"
