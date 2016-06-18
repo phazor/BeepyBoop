@@ -21,7 +21,7 @@
 			android:layout_height="wrap_content"
 			android:layout_width="fill_parent"
 			android:gravity="center"
-			android:textColor="#8B4E4A"/>
+			android:textColor="#000000"/>
 
 		<TextView
 			android:freezesText="true"
@@ -30,7 +30,7 @@
 			android:layout_width="wrap_content"
 			android:text="Loading..."
 			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:textColor="#A05A56"
+			android:textColor="#000000"
 			android:paddingBottom="12dp"/>
 
 	</LinearLayout>
@@ -47,7 +47,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
 			android:text="Countdown"
-			android:textColor="#905551"/>
+			android:textColor="#000000"/>
 
 		<TextView
 			android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
 			android:layout_width="wrap_content"
 			android:text="Loading..."
 			android:id="@+id/countdownText"
-			android:textColor="#874642"/>
+			android:textColor="#000000"/>
 
 	</LinearLayout>
 
