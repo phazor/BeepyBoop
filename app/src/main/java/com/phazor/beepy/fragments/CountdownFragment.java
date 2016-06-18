@@ -128,6 +128,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+								 
+		Log.w("beepy", "creating the fragment view");
 
 		// TODO Verify that it is safe to access the context here								 
 		// Create an instance of GoogleAPIClient.
@@ -144,11 +146,20 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
         return inflater.inflate(R.layout.fragment_countdown, container, false);
     }
 	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		Log.w("beepy", "resuming the fragment");
+	}
+	
+	@Override
 	public void onStart() {
 		mGoogleApiClient.connect();
 		super.onStart();
 	}
 
+	@Override
 	public void onStop() {
 		mGoogleApiClient.disconnect();
 		super.onStop();

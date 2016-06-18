@@ -24,13 +24,14 @@
 			android:textColor="#8B4E4A"/>
 
 		<TextView
+			android:freezesText="true"
+			android:id="@+id/passTimeText"
 			android:layout_height="wrap_content"
-			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
 			android:text="Loading..."
-			android:paddingBottom="12dp"
-			android:id="@+id/passTimeText"
-			android:textColor="#A05A56"/>
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textColor="#A05A56"
+			android:paddingBottom="12dp"/>
 
 	</LinearLayout>
 
