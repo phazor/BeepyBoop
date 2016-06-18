@@ -1,64 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_height="wrap_content"
-	android:layout_width="wrap_content"
-	android:background="#000000">
-
-	<ImageView
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:gravity="center"
-		android:scaleType="centerCrop"
-		android:src="@drawable/space_bkg"
-		android:background="#000000"
-		android:alpha="0.7"
-		android:id="@+id/mainImageView1"/>
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:gravity="center"
+	android:weightSum="100"
+	android:orientation="vertical"
+	android:id="@+id/mainLinearLayout1">
 
 	<LinearLayout
+		android:layout_weight="50"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:gravity="center"
-		android:weightSum="100"
-		android:orientation="vertical"
-		android:id="@+id/mainLinearLayout1">
-
-		<LinearLayout
-			android:layout_weight="50"
-			android:layout_width="match_parent"
-			android:id="@+id/linearLayout1"
-			android:layout_height="wrap_content"
-			android:gravity="center_horizontal"
-			android:orientation="vertical">
-
-			<TextView
-				android:textSize="14sp"
-				android:text="@string/welcome"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:orientation="vertical"
-				android:gravity="center_horizontal"
-				android:textStyle="normal"
-				android:textColor="#FFFFFF"/>
-
-			<TextView
-				android:layout_height="wrap_content"
-				android:layout_width="match_parent"
-				android:text="@string/sub_welcome"
-				android:gravity="center"
-				android:textColor="#FFFFFF"
-				android:textSize="24sp"/>
-
-		</LinearLayout>
+		android:orientation="vertical">
 
 		<TextView
 			android:textSize="20sp"
 			android:text="@string/time_label"
 			android:layout_height="wrap_content"
 			android:layout_width="fill_parent"
-			android:orientation="vertical"
-			android:gravity="center_horizontal"
-			android:textColor="#FFFFFF"/>
+			android:gravity="center"
+			android:textColor="#8B4E4A"/>
 
 		<TextView
 			android:layout_height="wrap_content"
@@ -66,23 +29,34 @@
 			android:layout_width="wrap_content"
 			android:text="Loading..."
 			android:paddingBottom="12dp"
-			android:id="@+id/passTimeText"/>
+			android:id="@+id/passTimeText"
+			android:textColor="#A05A56"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:layout_weight="50"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:orientation="vertical">
 
 		<TextView
 			android:layout_height="wrap_content"
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
 			android:text="Countdown"
-			android:textColor="#FFFFFF"/>
+			android:textColor="#905551"/>
 
 		<TextView
 			android:layout_height="wrap_content"
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:layout_width="wrap_content"
 			android:text="Loading..."
-			android:id="@+id/countdownText"/>
+			android:id="@+id/countdownText"
+			android:textColor="#874642"/>
 
 	</LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>
 
