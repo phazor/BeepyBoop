@@ -8,33 +8,64 @@
 	android:orientation="vertical"
 	android:id="@+id/mainLinearLayout1">
 
-	<LinearLayout
+	<RelativeLayout
 		android:layout_weight="50"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:gravity="center"
-		android:orientation="vertical">
+		android:layout_centerHorizontal="true"
+		android:layout_width="fill_parent"
+		android:layout_height="match_parent">
 
-		<TextView
-			android:textSize="20sp"
-			android:text="@string/time_label"
-			android:layout_height="wrap_content"
-			android:layout_width="fill_parent"
-			android:gravity="center"
-			android:textColor="#000000"/>
-
-		<TextView
-			android:freezesText="true"
-			android:id="@+id/passTimeText"
+		<LinearLayout
+			android:id="@+id/passTimeWrapper"
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="Loading..."
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:textColor="#000000"
-			android:paddingBottom="12dp"/>
+			android:layout_centerInParent="true"
+			android:gravity="center"
+			android:orientation="vertical">
 
-	</LinearLayout>
+			<TextView
+				android:gravity="center"
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:text="@string/time_label"
+				android:textColor="#000000"
+				android:textSize="20sp"/>
 
+			<TextView
+				android:freezesText="true"
+				android:gravity="center"
+				android:id="@+id/passTimeText"
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:text="Loading..."
+				android:textColor="#000000"
+				android:textSize="20sp"/>
+
+		</LinearLayout>
+
+		<android.support.design.widget.FloatingActionButton
+			android:id="@+id/fab_refresh"
+			android:layout_centerVertical="true"
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="10dp"
+			android:layout_toRightOf="@+id/passTimeWrapper"
+			android:layout_width="wrap_content"
+			android:src="@drawable/refresh_black_24dp"
+			android:tint="#555555"
+			android:width="60dp"/>
+
+		<android.support.design.widget.FloatingActionButton
+			android:id="@+id/fab_alarm"
+			android:layout_centerVertical="true"
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="10dp"
+			android:layout_toRightOf="@+id/fab_refresh"
+			android:layout_width="wrap_content"
+			android:src="@drawable/alarm_add_black_24dp"
+			android:tint="#555555"
+			android:width="60dp"/>
+
+	</RelativeLayout>
+	
 	<LinearLayout
 		android:layout_weight="50"
 		android:layout_width="match_parent"
