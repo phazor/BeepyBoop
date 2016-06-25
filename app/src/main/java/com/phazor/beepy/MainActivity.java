@@ -1,19 +1,19 @@
 package com.phazor.beepy;
 
+import android.content.*;
 import android.os.*;
+import android.provider.*;
 import android.support.design.widget.*;
 import android.support.v4.app.*;
 import android.support.v4.view.*;
 import android.support.v7.app.*;
 import android.support.v7.widget.*;
-import com.android.volley.toolbox.*;
-import com.google.android.gms.common.api.*;
-import com.google.android.gms.location.*;
-import com.phazor.beepy.*;
+import android.view.*;
+import android.widget.*;
 import com.phazor.beepy.fragments.*;
 import java.util.*;
 
-import com.phazor.beepy.R;
+import android.support.v7.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity  {
 
