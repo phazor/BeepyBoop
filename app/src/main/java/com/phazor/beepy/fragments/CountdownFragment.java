@@ -1,11 +1,14 @@
 package com.phazor.beepy.fragments;
 
 import android.app.*;
+import android.content.*;
 import android.location.*;
 import android.os.*;
-import android.support.v4.app.Fragment;
+import android.provider.*;
+import android.support.v4.app.*;
 import android.util.*;
 import android.view.*;
+import android.view.View.*;
 import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.*;
@@ -19,6 +22,7 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import android.support.v4.app.Fragment;
 import com.phazor.beepy.R;
 
 public class CountdownFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
@@ -30,6 +34,7 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	// TODO: Figure out a way of putting these in a callback
 	public static ISSPassTimes mISSPassTimes;
 	public static SunriseSunset mSunriseSunset;
+	public Date mNextVisiblePass;
 	// TODO: Refactor all references into the main activity
 	private GoogleApiClient mGoogleApiClient;
 	private boolean hasLocation = false;
@@ -130,9 +135,28 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
                              Bundle savedInstanceState) {
 								 
 		Log.w("beepy", "creating the Fragment View");
-
+		
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_countdown, container, false);
+		View view = inflater.inflate(R.layout.fragment_countdown, container, false);
+		
+		view.findViewById(R.id.fab_alarm).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				TextView passTime = (TextView) getView().findViewById(R.id.passTimeText);
+				passTime.append(" Boop!!");
+				
+				if (mNextVisiblePass != null) {
+					Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
+					i.putExtra(AlarmClock.EXTRA_DAYS, mNextVisiblePass.getDay());
+					i.putExtra(AlarmClock.EXTRA_HOUR, mNextVisiblePass.getHours());
+					i.putExtra(AlarmClock.EXTRA_MINUTES, mNextVisiblePass.getMinutes() - 5);
+					i.putExtra(AlarmClock.EXTRA_MESSAGE, "ISS, 5 mins from now");
+					startActivity(i);
+				}
+			}
+		});
+		
+        return view;
     }
 
 	@Override
@@ -203,7 +227,7 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 			 * /sadface
 			 */
 			// Initially set Next Visible Pass to be the next pass
-			Date nextVisiblePass = new Date(Long.parseLong(issPassTimes.getResponse().get(0).getRisetime())*1000);
+			mNextVisiblePass = new Date(Long.parseLong(issPassTimes.getResponse().get(0).getRisetime())*1000);
 			// Are we currently in day-time?
 			if (isDayTime(sunriseSunset)) {
 				// If yes, when is the next pass?
@@ -217,13 +241,13 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 					passTimeText.append(" pass timez: " + thisDate.toLocaleString());
 					Date sunsetDate = sdf.parse(sunriseSunset.getResults().getSunset());
 					if (thisDate.after(sunsetDate)) {
-						nextVisiblePass = thisDate;
+						mNextVisiblePass = thisDate;
 						break;
 					}
 				}
 			}
-			Log.w("beepy", "next visible pass time: " + nextVisiblePass.toLocaleString());
-			passTimeText.setText(nextVisiblePass.toLocaleString());
+			Log.w("beepy", "next visible pass time: " + mNextVisiblePass.toLocaleString());
+			passTimeText.setText(mNextVisiblePass.toLocaleString());
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
