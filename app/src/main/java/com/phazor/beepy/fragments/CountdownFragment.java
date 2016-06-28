@@ -144,15 +144,13 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		view.findViewById(R.id.fab_alarm).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				TextView passTime = (TextView) getView().findViewById(R.id.passTimeText);
-				passTime.append(" Boop!!");
 				
 				if (mNextVisiblePass != null) {
 					Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
 					i.putExtra(AlarmClock.EXTRA_DAYS, mNextVisiblePass.getDay());
 					i.putExtra(AlarmClock.EXTRA_HOUR, mNextVisiblePass.getHours());
 					i.putExtra(AlarmClock.EXTRA_MINUTES, mNextVisiblePass.getMinutes() - 5);
-					i.putExtra(AlarmClock.EXTRA_MESSAGE, "ISS, 5 mins from now");
+					i.putExtra(AlarmClock.EXTRA_MESSAGE, "Next ISS sighting");
 					startActivity(i);
 				}
 			}
