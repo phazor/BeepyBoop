@@ -249,7 +249,7 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		}
 	}
 	
-	// TODO: Guard against mNextPassTime being set
+	// TODO: Guard against mNextPassTime not being set
 	private void showCountdownTimer() {
 		final TextView countdownText = (TextView) getView().findViewById(R.id.countdownText);
 		new CountDownTimer((Math.abs(new Date().getTime() - mNextVisiblePass.getTime())), 1000) {
