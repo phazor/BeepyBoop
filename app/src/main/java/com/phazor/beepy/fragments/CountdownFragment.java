@@ -64,8 +64,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 				queue.add(ISSPassTimesRequestCreator.createISSPassTimesRequest(mLastLocation));
 				queue.add(SunsetSunriseRequestCreator.createSunsetSunriseRequest(mLastLocation));
 				
-				/* Slightly janky code to run a thread when x number of requests finish.
-				 * Retrofit and RXJava make this easy but cannot be used because parameter
+				/* Slightly janky code to run a thread when x number of requests finish. Retrofit
+				 * and RXJava make this more elegant but cannot be used because parameter 
 				 * annotations aren't supported by the mobile IDE I'm using - AIDE.
 				 *
 				 * /sadface
