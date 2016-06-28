@@ -91,7 +91,9 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 											Log.w("beepy", "sunrise-sunset:");
 											Log.w("beepy", mSunriseSunset.getResults().getSunrise());
 											
-											showNextPassTime(mISSPassTimes, mSunriseSunset);
+											setNextPassTime(mISSPassTimes, mSunriseSunset);
+											showNextPassTime();
+											showCountdownTimer();
 										}
 									});
 							}
@@ -213,11 +215,10 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		Date sunset = sdf.parse(sunriseSunset.getResults().getSunset());
 		return ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0));
 	}
-	
+
 	// Do some math to determine when the next night-time pass-time is going to be
-	private void showNextPassTime(ISSPassTimes issPassTimes, SunriseSunset sunriseSunset) {
+	private void setNextPassTime(ISSPassTimes issPassTimes, SunriseSunset sunriseSunset) {
 		Log.w("showNextPassTime", "hello");
-		TextView passTimeText = (TextView) getView().findViewById(R.id.passTimeText);
 		try {
 			/* It would be nice to write this using functional methods
 			 * However AIDE doesn't support Java 8, hence no .filter()
@@ -235,10 +236,9 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 			} else {
 				// If no, when is the next night-time pass?
 				Log.w("beepy", "we're in day time!!");
-				Iterator<ISSPassTimes.Response> i = issPassTimes.getResponse().iterator();
 				for (ISSPassTimes.Response response : issPassTimes.getResponse()) {
 					Date thisDate = new Date(Long.parseLong(response.getRisetime())*1000);
-					passTimeText.append(" pass timez: " + thisDate.toLocaleString());
+					Log.w(" pass timez: ", thisDate.toLocaleString());
 					Date sunsetDate = sdf.parse(sunriseSunset.getResults().getSunset());
 					if (thisDate.after(sunsetDate)) {
 						mNextVisiblePass = thisDate;
@@ -246,11 +246,36 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 					}
 				}
 			}
-			Log.w("beepy", "next visible pass time: " + mNextVisiblePass.toLocaleString());
-			passTimeText.setText(mNextVisiblePass.toLocaleString());
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	// TODO: Guard against mNextPassTime being set
+	private void showCountdownTimer() {
+		final TextView countdownText = (TextView) getView().findViewById(R.id.countdownText);
+		new CountDownTimer((Math.abs(new Date().getTime() - mNextVisiblePass.getTime())), 1000) {
+			
+			public void onTick(long millisUntilFinished) {
+				SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss");
+				//countdownText.setText(String.valueOf(millisUntilFinished / 1000) + "s");
+				countdownText.setText(f.format(millisUntilFinished));
+			}
+			
+			public void onFinish() {
+				countdownText.setText("Loading...");
+				// TODO: Trigger re-calculation of nextPassTime
+			}
+			
+		}.start();
+	}
+	
+	// TODO: Guard against mNextPassTime not being set
+	private void showNextPassTime() {
+			TextView passTimeText = (TextView) getView().findViewById(R.id.passTimeText);
+			Log.w("beepy", "next visible pass time: " + mNextVisiblePass.toLocaleString());
+			passTimeText.setText(mNextVisiblePass.toLocaleString());
+		
 	}
 	
 }
