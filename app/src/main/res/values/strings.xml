@@ -4,6 +4,7 @@
     <string name="app_name">BeepyBoop</string>
     <string name="welcome">Welcome to Beepy Boop</string>
 	<string name="sub_welcome">The ISS Position Tracker</string>
-	<string name="time_label">Time till next sighting: </string>
+	<string name="time_label">Sighting at: </string>
+	<string name="countdown_label">Sighting in: </string>
 
 </resources>
