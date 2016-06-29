@@ -41,9 +41,8 @@ public class MainActivity extends AppCompatActivity  {
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new CountdownFragment(), "COUNTDOWN");
-        adapter.addFragment(new OneFragment(), "TWO");
-		adapter.addFragment(new HeadingFragment(), "HEADING");
 		adapter.addFragment(new com.phazor.beepy.fragments.ListFragment(), "LIST");
+		adapter.addFragment(new HeadingFragment(), "HEADING");
         viewPager.setAdapter(adapter);
     }
 
