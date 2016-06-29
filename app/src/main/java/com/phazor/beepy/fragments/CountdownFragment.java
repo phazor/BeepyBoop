@@ -152,7 +152,7 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 					Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
 					i.putExtra(AlarmClock.EXTRA_DAYS, mNextVisiblePass.getDay());
 					i.putExtra(AlarmClock.EXTRA_HOUR, mNextVisiblePass.getHours());
-					i.putExtra(AlarmClock.EXTRA_MINUTES, mNextVisiblePass.getMinutes() - 5);
+					i.putExtra(AlarmClock.EXTRA_MINUTES, mNextVisiblePass.getMinutes() - 1);
 					i.putExtra(AlarmClock.EXTRA_MESSAGE, "Next ISS sighting");
 					startActivity(i);
 				}
