@@ -155,7 +155,6 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 				}
 			}
 		});
-		
         return view;
     }
 
@@ -177,8 +176,6 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 				.build();
 		}
 	}
-	
-	
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState)
@@ -193,6 +190,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		super.onResume();
 		
 		Log.w("beepy", "resuming the fragment");
+		
+		showCountdownTimer();
 	}
 	
 	@Override
@@ -251,21 +250,22 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	
 	// TODO: Guard against mNextPassTime not being set
 	private void showCountdownTimer() {
-		final TextView countdownText = (TextView) getView().findViewById(R.id.countdownText);
-		new CountDownTimer((Math.abs(new Date().getTime() - mNextVisiblePass.getTime())), 1000) {
-			
-			public void onTick(long millisUntilFinished) {
-				SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss");
-				//countdownText.setText(String.valueOf(millisUntilFinished / 1000) + "s");
-				countdownText.setText(f.format(millisUntilFinished));
-			}
-			
-			public void onFinish() {
-				countdownText.setText("Loading...");
-				// TODO: Trigger re-calculation of nextPassTime
-			}
-			
-		}.start();
+		if (mNextVisiblePass != null) {
+			final TextView countdownText = (TextView) getView().findViewById(R.id.countdownText);
+			new CountDownTimer((Math.abs(new Date().getTime() - mNextVisiblePass.getTime())), 1000) {
+
+				public void onTick(long millisUntilFinished) {
+					SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss");
+					countdownText.setText(f.format(millisUntilFinished));
+				}
+
+				public void onFinish() {
+					countdownText.setText("Loading...");
+					// TODO: Trigger re-calculation of nextPassTime
+				}
+
+			}.start();
+		}
 	}
 	
 	// TODO: Guard against mNextPassTime not being set
