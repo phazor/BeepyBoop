@@ -2,6 +2,7 @@ package com.phazor.beepy.fragments;
 
 import android.app.*;
 import android.content.*;
+import android.graphics.*;
 import android.location.*;
 import android.os.*;
 import android.provider.*;
@@ -38,10 +39,10 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	// TODO: Refactor all references into the main activity
 	private GoogleApiClient mGoogleApiClient;
 	private boolean hasLocation = false;
-	// The 'specific' ISO-8601 that Sunrise Sunset uses
-	// Java 8 Dates would be great for this type of parsing :)
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-	
+	// The 'specific' ISO-8601 that Sunrise Sunset uses.
+	// Java 8 Dates would be great for this type of parsing ;)
+	private final SimpleDateFormat sunriseSunsetSDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+	private final SimpleDateFormat nextPassSDF = new SimpleDateFormat("H:mm:ss a, MMM d");
 	/*
 	 * Stuff that happens after connecting to Google Play Services
 	 * 
@@ -67,6 +68,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 				/* Slightly janky code to run a thread when x number of requests finish. Retrofit
 				 * and RXJava make this more elegant but cannot be used because parameter 
 				 * annotations aren't supported by the mobile IDE I'm using - AIDE.
+				 *
+				 * TODO: Refactor this, as it can NPE out when responses are slow
 				 *
 				 * /sadface
 				 */
@@ -190,7 +193,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		super.onResume();
 		
 		Log.w("beepy", "resuming the fragment");
-		
+		// This spot apparently is unreliable when not using compat
+		// Fragments. Worth noting if some refactoring takes place
 		showCountdownTimer();
 	}
 	
@@ -208,8 +212,8 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	
 	private boolean isDayTime(SunriseSunset sunriseSunset) throws ParseException {
 		Date now = new Date();
-		Date sunrise = sdf.parse(sunriseSunset.getResults().getSunrise());
-		Date sunset = sdf.parse(sunriseSunset.getResults().getSunset());
+		Date sunrise = sunriseSunsetSDF.parse(sunriseSunset.getResults().getSunrise());
+		Date sunset = sunriseSunsetSDF.parse(sunriseSunset.getResults().getSunset());
 		return ((now.compareTo(sunrise) < 0) || (now.compareTo(sunset) > 0));
 	}
 
@@ -236,7 +240,7 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 				for (ISSPassTimes.Response response : issPassTimes.getResponse()) {
 					Date thisDate = new Date(Long.parseLong(response.getRisetime())*1000);
 					Log.w(" pass timez: ", thisDate.toLocaleString());
-					Date sunsetDate = sdf.parse(sunriseSunset.getResults().getSunset());
+					Date sunsetDate = sunriseSunsetSDF.parse(sunriseSunset.getResults().getSunset());
 					if (thisDate.after(sunsetDate)) {
 						mNextVisiblePass = thisDate;
 						break;
@@ -248,19 +252,20 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		}
 	}
 	
-	// TODO: Guard against mNextPassTime not being set
 	private void showCountdownTimer() {
 		if (mNextVisiblePass != null) {
 			final TextView countdownText = (TextView) getView().findViewById(R.id.countdownText);
 			new CountDownTimer((Math.abs(new Date().getTime() - mNextVisiblePass.getTime())), 1000) {
+				final SimpleDateFormat f = new SimpleDateFormat("H:mm:ss");
 
 				public void onTick(long millisUntilFinished) {
-					SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss");
+					f.setTimeZone(TimeZone.getTimeZone("UTC"));
 					countdownText.setText(f.format(millisUntilFinished));
 				}
 
 				public void onFinish() {
 					countdownText.setText("Loading...");
+					Log.w("beepy", "Countdown finished");
 					// TODO: Trigger re-calculation of nextPassTime
 				}
 
@@ -271,8 +276,9 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 	// TODO: Guard against mNextPassTime not being set
 	private void showNextPassTime() {
 			TextView passTimeText = (TextView) getView().findViewById(R.id.passTimeText);
+			passTimeText.setText(nextPassSDF.format(mNextVisiblePass));
 			Log.w("beepy", "next visible pass time: " + mNextVisiblePass.toLocaleString());
-			passTimeText.setText(mNextVisiblePass.toLocaleString());
+			//passTimeText.setText(mNextVisiblePass.toLocaleString());
 		
 	}
 	
