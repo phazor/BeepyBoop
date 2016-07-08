@@ -116,15 +116,14 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		// TODO: Prompt the user to update google play services, if it is out of date
 		TextView passTimeText = (TextView) getView().findViewById(R.id.passTimeText);
 		passTimeText.setText("Urgghh: " + result.getResolution() + " " + result.getErrorMessage() + " " + result.getErrorCode());
-		// TODO: Stub
+		Log.w("beepy", "Google Play Services connection failed. This may be due to an out of date Google Play version, or invalid permissions.");
 	}
 	
 	// Code that executes when the connection to Google Play Services is suspended
 	@Override
 	public void onConnectionSuspended(int val) {
 		TextView passTimeText = (TextView) getView().findViewById(R.id.passTimeText);
-		passTimeText.setText("Suspended :D");
-		// TODO: Stub
+		Log.w("beepy", "Google Play Services connection suspended");
 	}
 	
     @Override
@@ -193,8 +192,9 @@ public class CountdownFragment extends Fragment implements GoogleApiClient.Conne
 		super.onResume();
 		
 		Log.w("beepy", "resuming the fragment");
-		// This spot apparently is unreliable when not using compat
+		// This spot apparently is unreliable when not using Compat
 		// Fragments. Worth noting if some refactoring takes place
+		// and Compat is no longer used.
 		showCountdownTimer();
 	}
 	
